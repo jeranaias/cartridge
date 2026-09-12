@@ -1,5 +1,7 @@
 # 🎴 Cartridge
 
+[![CI](https://github.com/jeranaias/cartridge/actions/workflows/ci.yml/badge.svg)](https://github.com/jeranaias/cartridge/actions/workflows/ci.yml) [![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+
 **Package a course into a SCORM 1.2 cartridge that drops into any LMS and reports scores.**
 
 You have course content — lessons, a quiz. Your LMS speaks SCORM. Cartridge is the little machine
