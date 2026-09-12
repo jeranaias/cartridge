@@ -8,12 +8,21 @@ function fail(msg) {
   process.exit(1);
 }
 
+// Parse flags and their values first, so a flag's VALUE (e.g. the token after -o) is never mistaken
+// for the positional input file. The first bare token that is not a consumed flag value is the input.
 const args = process.argv.slice(2);
-const input = args.find((a) => !a.startsWith('-'));
-const out = (args.includes('-o') ? args[args.indexOf('-o') + 1] : null) || `cartridge-${safe(input)}.zip`;
-const version = args.includes('--version') ? args[args.indexOf('--version') + 1] : undefined;
+let input, outFlag, version;
+for (let i = 0; i < args.length; i++) {
+  const a = args[i];
+  if (a === '-o' || a === '--out') outFlag = args[++i];
+  else if (a === '--version') version = args[++i];
+  else if (a.startsWith('-')) fail(`unknown flag: ${a}`);
+  else if (input === undefined) input = a;
+}
 
 if (!input) fail('usage: cartridge <course.json> [-o out.zip] [--version 1.2|2004]');
+
+const out = outFlag || `cartridge-${safe(input)}.zip`;
 
 let course;
 try {
