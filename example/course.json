@@ -1,0 +1,14 @@
+{
+  "title": "Land Navigation Basics",
+  "subtitle": "A short grounded lesson with a knowledge check",
+  "summary": "Covers pace count, terrain association, and resection at an introductory level.",
+  "masteryScore": 70,
+  "lessons": [
+    { "text": "A pace count is the number of paces it takes you to walk 100 meters. Calibrate it on known-distance ground and recount after significant elevation change.", "cite": "Field reference, Ch. 9, p.9-3" },
+    { "text": "Terrain association is navigating by matching the map's terrain features to what you see, rather than relying only on azimuth and distance." }
+  ],
+  "quiz": [
+    { "stem": "What does a pace count measure?", "options": ["Paces per 100m", "Steps per mile", "Minutes per km", "Meters per minute"], "answer": 0 },
+    { "stem": "Terrain association relies primarily on…", "options": ["A compass azimuth only", "Matching map features to the ground", "GPS waypoints", "Pace count alone"], "answer": 1 }
+  ]
+}

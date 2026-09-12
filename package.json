@@ -1,0 +1,13 @@
+{
+  "name": "cartridge",
+  "version": "0.1.0",
+  "description": "Package a course into a SCORM 1.2 cartridge that drops into any LMS and reports scores.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "src/cartridge.js",
+  "bin": { "cartridge": "src/cli.mjs" },
+  "exports": { ".": "./src/cartridge.js" },
+  "scripts": { "example": "node src/cli.mjs example/course.json" },
+  "keywords": ["scorm", "scorm-1.2", "lms", "elearning", "courseware", "moodle"],
+  "dependencies": { "jszip": "^3.10.1" }
+}
