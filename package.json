@@ -1,7 +1,7 @@
 {
   "name": "cartridge",
   "version": "0.1.0",
-  "description": "Package a course into a SCORM 1.2 cartridge that drops into any LMS and reports scores.",
+  "description": "Package a plain JSON course into a SCORM 1.2 or 2004 .zip that drops into any LMS and reports completion and score to the gradebook.",
   "license": "Apache-2.0",
   "type": "module",
   "main": "src/cartridge.js",
@@ -18,10 +18,14 @@
   "keywords": [
     "scorm",
     "scorm-1.2",
+    "scorm-2004",
     "lms",
     "elearning",
     "courseware",
-    "moodle"
+    "moodle",
+    "canvas",
+    "gradebook",
+    "imsmanifest"
   ],
   "dependencies": {
     "jszip": "^3.10.1"

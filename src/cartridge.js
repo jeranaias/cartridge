@@ -2,7 +2,16 @@
 // Input is a plain course object (see README for the shape); output is a .zip Buffer.
 import JSZip from 'jszip';
 
+/** Escape a value for safe interpolation into XML/HTML text and attributes. */
 const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+/**
+ * Sanitize an arbitrary string into a filesystem/identifier-safe token: keep only
+ * `A–Z a–z 0–9 . _ -`, collapse runs of other characters to a single `-`, trim
+ * leading/trailing dashes, and cap at 40 characters. Never returns an empty string.
+ * @param {string} s
+ * @returns {string}
+ */
 export const safe = (s) => String(s || 'course').replace(/[^A-Za-z0-9._-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'course';
 
 function manifest(course) {
@@ -79,7 +88,7 @@ app.innerHTML=h;var sub=document.getElementById('sub');if(sub)sub.onclick=functi
 var d=document.getElementById('done');if(d)d.onclick=function(){try{SCORM.complete(null);SCORM.finish();}catch(e){}};})();</script></body></html>`;
 }
 
-/** Build a SCORM 1.2 package from a course object. Returns a Promise<Buffer> (the .zip). */
+// SCORM 2004 (3rd/4th Edition) content-packaging manifest.
 function manifest2004(course) {
   const id = 'CARTRIDGE_' + safe(course.id || course.title);
   return `<?xml version="1.0" encoding="UTF-8"?>
@@ -104,12 +113,47 @@ function manifest2004(course) {
 }
 
 /**
+ * A single lesson: either a plain string, or an object with body text and an optional citation.
+ * @typedef {string | { text: string, cite?: string }} Lesson
+ */
+
+/**
+ * A single quiz question.
+ * @typedef {object} Question
+ * @property {string}   stem     the question text
+ * @property {string[]} options  answer choices
+ * @property {number}   answer   zero-based index of the correct option
+ */
+
+/**
+ * A course to package.
+ * @typedef {object} Course
+ * @property {string}     title           required course title
+ * @property {string}     [id]            stable identifier used in the manifest (defaults to the title)
+ * @property {string}     [subtitle]      optional subtitle
+ * @property {string}     [summary]       optional overview paragraph
+ * @property {number}     [masteryScore]  passing score, 0–100 (default 70; SCORM 1.2 only)
+ * @property {Lesson[]}   [lessons]       lesson cards shown before the quiz
+ * @property {Question[]} [quiz]          optional graded knowledge check (first 12 questions used)
+ * @property {'1.2'|'2004'} [version]     default SCORM version if none is passed to buildCartridge
+ */
+
+/**
  * Build a SCORM package from a course object. Returns a Promise<Buffer> (the .zip).
- * @param {object} course  see README
- * @param {{ version?: '1.2'|'2004' }} [opts]
+ * @param {Course} course  the course to package; `course.title` is required
+ * @param {{ version?: '1.2'|'2004' }} [opts]  target SCORM version (default '1.2')
+ * @returns {Promise<Buffer>} the packaged .zip, ready to upload to an LMS
+ * @throws {TypeError} if `course` is not an object or `course.title` is missing/blank
  */
 export async function buildCartridge(course, opts = {}) {
+  if (!course || typeof course !== 'object') throw new TypeError('buildCartridge: course must be an object');
+  if (typeof course.title !== 'string' || course.title.trim() === '') {
+    throw new TypeError('buildCartridge: course.title is required and must be a non-empty string');
+  }
   const version = opts.version || course.version || '1.2';
+  if (version !== '1.2' && version !== '2004') {
+    throw new TypeError(`buildCartridge: version must be '1.2' or '2004', got '${version}'`);
+  }
   const zip = new JSZip();
   zip.file('imsmanifest.xml', version === '2004' ? manifest2004(course) : manifest(course));
   zip.file('runtime.js', version === '2004' ? runtime2004() : runtime12());

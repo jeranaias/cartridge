@@ -1,14 +1,16 @@
 {
-  "title": "Land Navigation Basics",
-  "subtitle": "A short grounded lesson with a knowledge check",
-  "summary": "Covers pace count, terrain association, and resection at an introductory level.",
+  "title": "Workplace Fire Safety Basics",
+  "subtitle": "A short lesson with a knowledge check",
+  "summary": "Covers extinguisher use, evacuation routes, and how to raise the alarm.",
   "masteryScore": 70,
   "lessons": [
-    { "text": "A pace count is the number of paces it takes you to walk 100 meters. Calibrate it on known-distance ground and recount after significant elevation change.", "cite": "Field reference, Ch. 9, p.9-3" },
-    { "text": "Terrain association is navigating by matching the map's terrain features to what you see, rather than relying only on azimuth and distance." }
+    { "text": "Remember the PASS technique for a fire extinguisher: Pull the pin, Aim at the base of the fire, Squeeze the handle, and Sweep from side to side.", "cite": "Safety handbook, Section 4.2" },
+    { "text": "Know at least two evacuation routes from your work area. If the nearest exit is blocked, the second route keeps you from getting trapped." },
+    { "text": "On discovering a fire, raise the alarm first, then only attempt to fight small, contained fires — and never at the cost of your own escape path." }
   ],
   "quiz": [
-    { "stem": "What does a pace count measure?", "options": ["Paces per 100m", "Steps per mile", "Minutes per km", "Meters per minute"], "answer": 0 },
-    { "stem": "Terrain association relies primarily on…", "options": ["A compass azimuth only", "Matching map features to the ground", "GPS waypoints", "Pace count alone"], "answer": 1 }
+    { "stem": "What does the 'A' in the PASS technique stand for?", "options": ["Alert others", "Aim at the base of the fire", "Activate the alarm", "Avoid the smoke"], "answer": 1 },
+    { "stem": "How many evacuation routes should you know from your work area?", "options": ["None — just follow others", "At least one", "At least two", "Exactly four"], "answer": 2 },
+    { "stem": "What should you do first on discovering a fire?", "options": ["Fight it immediately", "Raise the alarm", "Collect your belongings", "Open the windows"], "answer": 1 }
   ]
 }
