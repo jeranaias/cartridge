@@ -5,9 +5,25 @@
   "license": "Apache-2.0",
   "type": "module",
   "main": "src/cartridge.js",
-  "bin": { "cartridge": "src/cli.mjs" },
-  "exports": { ".": "./src/cartridge.js" },
-  "scripts": { "example": "node src/cli.mjs example/course.json" },
-  "keywords": ["scorm", "scorm-1.2", "lms", "elearning", "courseware", "moodle"],
-  "dependencies": { "jszip": "^3.10.1" }
+  "bin": {
+    "cartridge": "src/cli.mjs"
+  },
+  "exports": {
+    ".": "./src/cartridge.js"
+  },
+  "scripts": {
+    "test": "node --test",
+    "example": "node src/cli.mjs example/course.json"
+  },
+  "keywords": [
+    "scorm",
+    "scorm-1.2",
+    "lms",
+    "elearning",
+    "courseware",
+    "moodle"
+  ],
+  "dependencies": {
+    "jszip": "^3.10.1"
+  }
 }

@@ -25,20 +25,32 @@ function manifest(course) {
   </organizations>
   <resources>
     <resource identifier="RES1" type="webcontent" adlcp:scormtype="sco" href="index.html">
-      <file href="index.html"/><file href="scorm12.js"/>
+      <file href="index.html"/><file href="runtime.js"/>
     </resource>
   </resources>
 </manifest>`;
 }
 
-function runtime() {
+// SCORM 1.2 runtime wrapper — exposes a stable window.SCORM the courseware calls.
+function runtime12() {
   return `(function(){var API=null;
   function find(w){var n=0;while(w&&!w.API&&w.parent&&w.parent!=w&&n<12){w=w.parent;n++;}return w?w.API:null;}
   function get(){if(API)return API;API=find(window);if(!API&&window.opener)API=find(window.opener);return API;}
-  window.SCORM={
+  window.SCORM={present:function(){return !!get();},
     init:function(){var a=get();if(!a)return false;a.LMSInitialize('');a.LMSSetValue('cmi.core.lesson_status','incomplete');a.LMSCommit('');return true;},
     complete:function(s){var a=get();if(!a)return false;if(s!=null){a.LMSSetValue('cmi.core.score.raw',String(s));a.LMSSetValue('cmi.core.score.min','0');a.LMSSetValue('cmi.core.score.max','100');}a.LMSSetValue('cmi.core.lesson_status',(s!=null&&s>=70)?'passed':'completed');a.LMSCommit('');return true;},
     finish:function(){var a=get();if(!a)return false;a.LMSFinish('');return true;}};})();`;
+}
+
+// SCORM 2004 runtime wrapper — same window.SCORM interface, different underlying data model.
+function runtime2004() {
+  return `(function(){var API=null;
+  function find(w){var n=0;while(w&&!w.API_1484_11&&w.parent&&w.parent!=w&&n<12){w=w.parent;n++;}return w?w.API_1484_11:null;}
+  function get(){if(API)return API;API=find(window);if(!API&&window.opener)API=find(window.opener);return API;}
+  window.SCORM={present:function(){return !!get();},
+    init:function(){var a=get();if(!a)return false;a.Initialize('');a.SetValue('cmi.completion_status','incomplete');a.Commit('');return true;},
+    complete:function(s){var a=get();if(!a)return false;if(s!=null){a.SetValue('cmi.score.raw',String(s));a.SetValue('cmi.score.min','0');a.SetValue('cmi.score.max','100');a.SetValue('cmi.score.scaled',String(Math.max(0,Math.min(1,s/100))));a.SetValue('cmi.success_status',(s>=70)?'passed':'failed');}a.SetValue('cmi.completion_status','completed');a.Commit('');return true;},
+    finish:function(){var a=get();if(!a)return false;a.Terminate('');return true;}};})();`;
 }
 
 function courseware(course) {
@@ -46,7 +58,7 @@ function courseware(course) {
   const quiz = (course.quiz || []).slice(0, 12);
   const data = { title: course.title, subtitle: course.subtitle || '', summary: course.summary || '', lessons, quiz };
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${esc(course.title)}</title><script src="scorm12.js"></script>
+<title>${esc(course.title)}</title><script src="runtime.js"></script>
 <style>:root{--ink:#1a2733;--dim:#5c6b7a;--line:#dbe3ec;--teal:#0a7d70;--bg:#f6f8fb;--good:#0a7d70;--bad:#c0392b}
 *{box-sizing:border-box}body{margin:0;font-family:'Inter',system-ui,Segoe UI,Roboto,sans-serif;color:var(--ink);background:var(--bg);line-height:1.55}
 .wrap{max-width:760px;margin:0 auto;padding:28px 22px 80px}h1{font-size:26px;margin:0 0 2px}.sub{color:var(--dim);margin:0 0 18px}
@@ -68,10 +80,58 @@ var d=document.getElementById('done');if(d)d.onclick=function(){try{SCORM.comple
 }
 
 /** Build a SCORM 1.2 package from a course object. Returns a Promise<Buffer> (the .zip). */
-export async function buildCartridge(course) {
+function manifest2004(course) {
+  const id = 'CARTRIDGE_' + safe(course.id || course.title);
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<manifest identifier="${id}" version="1"
+  xmlns="http://www.imsglobal.org/xsd/imscp_v1p1"
+  xmlns:adlcp="http://www.adlnet.org/xsd/adlcp_v1p3"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.imsglobal.org/xsd/imscp_v1p1 imscp_v1p1.xsd http://www.adlnet.org/xsd/adlcp_v1p3 adlcp_v1p3.xsd">
+  <metadata><schema>ADL SCORM</schema><schemaversion>2004 4th Edition</schemaversion></metadata>
+  <organizations default="ORG">
+    <organization identifier="ORG">
+      <title>${esc(course.title)}</title>
+      <item identifier="ITEM1" identifierref="RES1"><title>${esc(course.title)}</title></item>
+    </organization>
+  </organizations>
+  <resources>
+    <resource identifier="RES1" type="webcontent" adlcp:scormType="sco" href="index.html">
+      <file href="index.html"/><file href="runtime.js"/>
+    </resource>
+  </resources>
+</manifest>`;
+}
+
+/**
+ * Build a SCORM package from a course object. Returns a Promise<Buffer> (the .zip).
+ * @param {object} course  see README
+ * @param {{ version?: '1.2'|'2004' }} [opts]
+ */
+export async function buildCartridge(course, opts = {}) {
+  const version = opts.version || course.version || '1.2';
   const zip = new JSZip();
-  zip.file('imsmanifest.xml', manifest(course));
-  zip.file('scorm12.js', runtime());
+  zip.file('imsmanifest.xml', version === '2004' ? manifest2004(course) : manifest(course));
+  zip.file('runtime.js', version === '2004' ? runtime2004() : runtime12());
   zip.file('index.html', courseware(course));
   return zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
+}
+
+/**
+ * Validate a package buffer: manifest present + parseable, has an organization and a resource, and
+ * every file the manifest references is actually in the zip. Returns { valid, version, issues }.
+ */
+export async function validatePackage(buffer) {
+  const issues = [];
+  const zip = await JSZip.loadAsync(buffer);
+  const man = zip.file('imsmanifest.xml');
+  if (!man) return { valid: false, version: null, issues: ['imsmanifest.xml missing'] };
+  const xml = await man.async('string');
+  if (!/<manifest[\s>]/.test(xml)) issues.push('no <manifest> element');
+  if (!/<organization\b/.test(xml)) issues.push('no <organization>');
+  if (!/<resource\b/.test(xml)) issues.push('no <resource>');
+  const sv = xml.match(/<schemaversion>([^<]+)<\/schemaversion>/);
+  const names = new Set(Object.keys(zip.files));
+  for (const m of xml.matchAll(/<file\s+href="([^"]+)"/g)) if (!names.has(m[1])) issues.push(`referenced file missing: ${m[1]}`);
+  return { valid: issues.length === 0, version: sv ? sv[1].trim() : null, issues };
 }

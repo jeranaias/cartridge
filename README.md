@@ -55,11 +55,30 @@ Every cartridge is a valid SCORM 1.2 package containing:
 
 Open `index.html` on its own and it still works as a standalone preview (it just says "no LMS detected").
 
-## Why SCORM 1.2
+## SCORM 1.2 or 2004
 
-Because it's the format that *actually* works everywhere — every LMS in the wild imports 1.2. Cartridge
-keeps the package minimal and dependency-free on the player side, so it loads instantly and never
-trips a content validator.
+1.2 by default (it works *everywhere*), or ask for 2004 when your LMS wants it — same course in, the
+right manifest and runtime out:
+
+```js
+await buildCartridge(course, { version: '2004' });
+```
+
+## Validate before you ship
+
+Don't upload and pray. Check a package is well-formed — manifest present and parseable, an organization
+and a resource, and every referenced file actually in the zip:
+
+```js
+import { validatePackage } from 'cartridge';
+const report = await validatePackage(zipBuffer);
+// → { valid: true, version: '1.2', issues: [] }
+```
+
+## Why minimal
+
+Cartridge keeps the player-side package tiny and dependency-free, so it loads instantly and never trips
+a content validator — the courseware is one self-contained HTML file plus a small runtime.
 
 ## Install
 
